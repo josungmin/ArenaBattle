@@ -18,11 +18,13 @@ AABPawn::AABPawn()
 	RootComponent = Capsule;
 	Mesh->SetupAttachment(Capsule);
 	SpringArm->SetupAttachment(Capsule);
-	Camera->SetupAttachment(Capsule);
+	Camera->SetupAttachment(SpringArm);
 
 	Capsule->SetCapsuleHalfHeight(88.0f);
 	Capsule->SetCapsuleRadius(34.0f);
+
 	Mesh->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
+
 	SpringArm->TargetArmLength = 400.0f;
 	SpringArm->SetRelativeRotation(FRotator(-15.0f, 0.0f, 0.0f));
 
@@ -31,6 +33,15 @@ AABPawn::AABPawn()
 	if (SK_CARDBOARD.Succeeded())
 	{
 		Mesh->SetSkeletalMesh(SK_CARDBOARD.Object);
+	}
+
+	Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+	static ConstructorHelpers::FClassFinder<UAnimInstance> WARRIOR_ANIM(TEXT("/Game/Book/Animations/WarriorAnimBlueprint.WarriorAnimBlueprint_C"));
+
+	if (WARRIOR_ANIM.Succeeded())
+	{
+		Mesh->SetAnimInstanceClass(WARRIOR_ANIM.Class);
 	}
 }
 
@@ -53,6 +64,20 @@ void AABPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis(TEXT("UpDown"), this, &AABPawn::UpDown);
+	PlayerInputComponent->BindAxis(TEXT("LeftRIght"), this, &AABPawn::LeftRight);
+}
+
+void AABPawn::UpDown(float NewAxisValue)
+{
+	//ABLOG(Warning, TEXT("%f"), NewAxisValue);
+	AddMovementInput(GetActorForwardVector(), NewAxisValue);
+}
+
+void AABPawn::LeftRight(float NewAxisValue)
+{
+	//ABLOG(Warning, TEXT("%f"), NewAxisValue);
+	AddMovementInput(GetActorRightVector(), NewAxisValue);
 }
 
 void AABPawn::PostInitializeComponents()
